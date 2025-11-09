@@ -11,6 +11,26 @@ html {
 }
 
 .container {
-    height: 100vh;
     display: grid;
+    grid-template-columns: repeat(4, minmax(10rem, 35rem));
+    grid-auto-rows: minmax(10rem, 44rem);
+    place-content: center;
+    justify-items: center;
+}
+
+.items-one {
+    grid-column: 1 / 5;
+}
+
+.items {
+    width: 30rem;
+    height: 40rem;
+    text-align: center;
+}
+
+.images {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    border-radius: 1rem;
 }
