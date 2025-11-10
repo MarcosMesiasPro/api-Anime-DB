@@ -17,8 +17,5 @@
   "bugs": {
     "url": "https://github.com/MarcosMesiasPro/api-Anime-DB/issues"
   },
-  "homepage": "https://github.com/MarcosMesiasPro/api-Anime-DB#readme",
-  "dependencies": {
-    "fuse.js": "^7.1.0"
-  }
+  "homepage": "https://github.com/MarcosMesiasPro/api-Anime-DB#readme"
 }
