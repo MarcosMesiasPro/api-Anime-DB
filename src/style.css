@@ -20,6 +20,25 @@ html {
 
 .items-one {
     grid-column: 1 / 5;
+    place-self: center;
+    display: grid;
+    place-items: center;
+}
+
+.input-search {
+    width: 100rem;
+    height: 3.5rem;
+    border-radius: 1.5rem;
+}
+
+.btn-search {
+    width: 8rem;
+    height: 3rem;
+    border-radius: 1rem;
+}
+
+.items-one div {
+    margin-top: 1rem;
 }
 
 .items {
@@ -33,4 +52,9 @@ html {
     height: 100%;
     object-fit: fill;
     border-radius: 1rem;
+}
+
+.not-found span {
+    font-size: 3rem;
+    font-weight: bold;
 }
