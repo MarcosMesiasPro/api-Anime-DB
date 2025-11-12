@@ -4,6 +4,7 @@ const container = document.querySelector('#container');
 const search = document.querySelector('#input-search');
 const btnSearch = document.querySelector('#btn-search');
 
+
 async function dataFetch(apiUrl) {
     const response = await fetch(apiUrl);
     const data = await response.json();
@@ -13,11 +14,12 @@ async function dataFetch(apiUrl) {
 // Codigo Main pagina principal
 async function animeMain(count) {
     try {
-        const animeData = await dataFetch(`${API}top/anime?sfw&page=${count}`);
-        //console.log(animeData.data);
+        const animeData = await dataFetch(`${API}top/anime?sfw&page=${count}`); // top/anime?sfw
+        //console.log(animeData.pagination.current_page);
         //console.log(animeData.pagination.last_visible_page);
         animeData.data.forEach(items => {
-            container.appendChild(divImg(items.title, items.images.jpg.large_image_url));
+            container.appendChild(divImg(items.title, items.images.jpg.large_image_url, items.mal_id));
+            
         });
 
     } catch (error) {
@@ -27,9 +29,9 @@ async function animeMain(count) {
 
 async function main() {
     const firstMain = await dataFetch(`${API}top/anime?sfw`); // `${API}top/anime?sfw`
-    console.log(firstMain.data);
+    //console.log(firstMain.pagination.current_page);
     firstMain.data.forEach(items => {
-        container.appendChild(divImg(items.title, items.images.jpg.large_image_url));
+        container.appendChild(divImg(items.title, items.images.jpg.large_image_url, items.mal_id));
     });
 
     for (let i = 2; i <= 4; i++) {
@@ -48,7 +50,7 @@ async function animeSearch(count, title) {
 
         if (animeData.pagination.last_visible_page >= count) {
             animeData.data.forEach(items => {
-                container.appendChild(divImg(items.title, items.images.jpg.large_image_url));
+                container.appendChild(divImg(items.title, items.images.jpg.large_image_url, items.mal_id));
             });
         }
 
@@ -92,85 +94,65 @@ search.addEventListener('keydown', (event) => {
 });
 
 // Template HTML
-function divImg(title, img){
+function divImg(title, img, id){
 
     const div = document.createElement('div');
     div.classList.add('items');
-    div.innerHTML = `<a href="#"><img class="images" src="${img}" alt="Cover del Anime ${title}"></a>
-        <a href="#"><h2>${title}</h2></a>`
+    div.innerHTML = `<a title="${title}" data-id="${id}" href="info.html"><img class="images" src="${img}" alt="Cover del Anime ${title}"></a>
+        <a title="${title}" data-id="${id}" href="info.html"><h2>${title}</h2></a>`
 
     return div;
 }
 
-main();
+// Enviar datos a la otra web
+container.addEventListener('click', (event) => {
+    const aInfo = event.target.closest('a');
+    event.preventDefault();
+    //console.log(aInfo.dataset.id)
 
-/* async function animeData(apiUrl, optGet) {
+    window.location.href = `info.html?id=${encodeURIComponent(aInfo.dataset.id)}&title=${encodeURIComponent(aInfo.title)}`;
+});
+
+//main();
+
+/* const newMain = JSON.parse(localStorage.getItem('datosAnime'));
+console.log(newMain); */
+
+// LocalStorage Codigo
+
+let localAnimeArray = [];
+async function localAnimeMain(count) {
     try {
-        const response = await fetch(`${apiUrl}page=1`, optGet);
-        const response2 = await fetch(`${apiUrl}page=2`, optGet);
-        if (!response.ok || !response2.ok) {
-            throw new Error(`Error HTTP: ${response.status}`);
-        }
-
-        const dataApi = await response.json();
-        const dataApi2 = await response2.json();
-
-        console.log(dataApi)
-
-        dataApi.data.slice(0,25).forEach(items => {
-            container.appendChild(divImg(items.title, items.images.jpg.large_image_url));
+        const animeData = await dataFetch(`${API}top/anime?sfw&page=${count}`);
+        animeData.data.forEach(items => {
+            localAnimeArray.push(items);
             
         });
+        console.log(localAnimeArray);
+        localStorage.setItem('datosAnime', JSON.stringify(localAnimeArray));
 
-        dataApi2.data.forEach(items2 => {
-            container.appendChild(divImg(items2.title, items2.images.jpg.large_image_url))
-        })
-
-        btnSearch.addEventListener('click', () => {
-            //console.log(`${search.value}`);
-            document.querySelectorAll('.items').forEach(itemDelete => itemDelete.remove());
-            
-            try {
-                if (container.children[1].className === 'not-found') {
-                    document.querySelectorAll('.not-found').forEach(notDelete => notDelete.remove());
-                }
-            } catch (error) {
-                console.log(error);
-            }
-
-            const optionsFuse = {
-            keys: ['title'],
-            threshold: 0.4
-            };
-
-            const fuse = new Fuse(dataApi.data, optionsFuse);
-
-            const query = search.value;
-            result = fuse.search(query);
-
-            if (result.length !== 0) {
-                    result.forEach(content => {
-                    console.log(content.item.title);
-                    console.log(content.item.images.jpg.large_image_url);
-                    container.appendChild(divImg(content.item.title, content.item.images.jpg.large_image_url))
-                })
-            } else {
-                container.appendChild(notFound())
-            }
-        })
-        
     } catch (error) {
-        console.log(`Un error a ocurrido: ${error}`)
+        console.error(error);
     }
 }
 
-
-function notFound() {
-    div = document.createElement('div');
-    div.classList.add('not-found');
-    div.innerHTML = `<span>Anime no Encontrdo</span>`;
-
-    return div;
+function storageAnimeMain() {
+    for (let i = 1; i <= 4; i++){
+        setTimeout(() => {
+            localAnimeMain(i)
+        }, i * 2000);
+    }
 }
 
-animeData(API, options); */
+if (JSON.parse(localStorage.getItem('datosAnime')) !== null) {
+    //console.log(JSON.parse(localStorage.getItem('datosAnime')))
+    const lsMain = JSON.parse(localStorage.getItem('datosAnime'));
+    lsMain.forEach(items => {
+        container.appendChild(divImg(items.title, items.images.jpg.large_image_url, items.mal_id));
+    });
+    
+
+} else {
+    main();
+    storageAnimeMain()
+}
