@@ -1,5 +1,7 @@
 :root {
     --primary-color: white;
+    --back-score: rgba(29, 31, 45, 0.7);
+    --score-span: #fff82f;
 }
 * {
     box-sizing: border-box;
@@ -19,9 +21,12 @@ html {
 }
 
 .items-one {
+    height: 22rem;
     grid-column: 1 / 5;
-    place-self: center;
+    justify-self: center;
+    align-self: end;
     display: grid;
+    grid-template-rows: 3.5rem 3.5rem 15rem;
     place-items: center;
 }
 
@@ -41,7 +46,13 @@ html {
     margin-top: 1rem;
 }
 
+.title-accion {
+    font-family: sans-serif;
+    font-size: 3.6rem;
+}
+
 .items {
+    position: relative;
     width: 30rem;
     height: 40rem;
     text-align: center;
@@ -54,7 +65,59 @@ html {
     border-radius: 1rem;
 }
 
+.score {
+    position: absolute;
+    background-color: var(--back-score);
+    width: 5.3rem;
+    height: 4.5rem;
+    right: 0.1rem;
+    border-radius: 1rem;
+}
+
+.score p {
+    margin-top: 0.4rem;
+    font-size: 1.6rem;
+    color: var(--score-span);
+}
+
 .not-found span {
     font-size: 3rem;
     font-weight: bold;
+}
+
+/*header*/
+
+header {
+    text-align: center;
+}
+
+.menu-list {
+    list-style: none;
+}
+
+.menu-list li {
+    font-size: 2rem;
+    display: inline-block;
+}
+
+/* See more */
+
+.see-more {
+    margin-top: 6rem;
+    margin-bottom: 6rem;
+    display: grid;
+    grid-template-columns: minmax(10rem, 140rem);
+    grid-template-rows: 5rem;
+    place-content: center;
+}
+
+.btn-see-more {
+    width: 12rem;
+    height: 4rem;
+}
+
+.see-more div {
+    width: 12rem;
+    height: 4rem;
+    justify-self: center;
 }

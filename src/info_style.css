@@ -87,3 +87,18 @@ h1 {
 .item-syn p {
     font-size: 1.8rem;
 }
+
+/*header*/
+
+header {
+    text-align: center;
+}
+
+.menu-list {
+    list-style: none;
+}
+
+.menu-list li {
+    font-size: 2rem;
+    display: inline-block;
+}

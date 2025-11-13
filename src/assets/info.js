@@ -5,9 +5,12 @@ const titleAnime = document.querySelector('.title-anime');
 const itemImg = document.querySelector('.item-img');
 const itemList = document.querySelector('.item-list');
 const itemSyn = document.querySelector('.item-syn');
+const backLink = document.querySelector('.back-link');
+
 const infoId = new URLSearchParams(window.location.search);
 const getInfoId = infoId.get('id');
 console.log(infoId.get('title'));
+console.log('Busqueda', infoId.get('search'));
 
 async function dataFetch(apiUrl) {
     const response = await fetch(apiUrl);
@@ -73,6 +76,24 @@ async function getId(id) {
 
 }
 
+
+// Volver a la pagina anterios con los datos de busquedas
+
+backLink.addEventListener('click', (event) => {
+
+    event.preventDefault();
+
+    backSearch = infoId.get('search');
+    if (backSearch != null) {
+        window.location.href = `index.html?search=${encodeURIComponent(backSearch)}`;
+        
+    } else {
+        window.location.href = `index.html`;
+    } 
+    
+})
+
+// Llamada del codigo
 
 if (getInfoId !== null){
     getId(getInfoId);
