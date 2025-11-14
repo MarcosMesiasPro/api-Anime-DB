@@ -12,7 +12,7 @@ html {
 
 /*Grid*/
 .container {
-    height: 100vh;
+    height: 95vh;
     display: grid;
     grid-template-columns: 35rem 55rem;
     grid-template-rows: 10rem 45rem 40rem 5rem;

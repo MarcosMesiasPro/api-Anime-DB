@@ -102,22 +102,56 @@ header {
 
 /* See more */
 
-.see-more {
+/* .see-more {
     margin-top: 6rem;
     margin-bottom: 6rem;
     display: grid;
     grid-template-columns: minmax(10rem, 140rem);
     grid-template-rows: 5rem;
     place-content: center;
+} */
+
+.see-more {
+    width: 12rem;
+    height: 4rem;
+    justify-self: center;
+    align-self: center;
 }
 
 .btn-see-more {
     width: 12rem;
     height: 4rem;
+    background-color: var(--back-score);
+    color: var(--score-span);
 }
 
-.see-more div {
+/* .see-more div {
     width: 12rem;
     height: 4rem;
     justify-self: center;
+} */
+
+/* Loader */
+
+.loader {
+  border: 6px solid rgba(255, 255, 255, 0.2);
+  border-top: 6px solid #00bfff;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 0.9s linear infinite;
+  position: fixed;
+  bottom: 50rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+}
+
+.hidden {
+  display: none;
+}
+
+@keyframes spin {
+  0% { transform: translateX(-50%) rotate(0deg); }
+  100% { transform: translateX(-50%) rotate(360deg); }
 }

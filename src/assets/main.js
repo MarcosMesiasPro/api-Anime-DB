@@ -4,7 +4,6 @@ const container = document.querySelector('#container');
 const search = document.querySelector('#input-search');
 const btnSearch = document.querySelector('#btn-search');
 const titleAccion = document.querySelector('.title-accion');
-const seeMoreBtn = document.querySelector('.btn-see-more');
 const locationLink = new URLSearchParams(window.location.search);
 
 async function dataFetch(apiUrl) {
@@ -14,34 +13,53 @@ async function dataFetch(apiUrl) {
 }
 
 // Codigo Main pagina principal
+
+let localStorageArray = []; // Codigo localStorage
 async function animeMain(count) {
+    const loader = document.getElementById('loader'); // Codigo loader
+    loader.classList.remove('hidden'); // Codigo loader
+
     try {
         const animeData = await dataFetch(`${API}top/anime?sfw&page=${count}`); // top/anime?sfw
         //console.log(animeData.pagination.current_page);
         //console.log(animeData.pagination.last_visible_page);
         animeData.data.forEach(items => {
             container.appendChild(divImg(items));
+            localStorageArray.length <= 74 && localStorageArray.push(items); // Codigo localStorage
             
         });
 
+        if (JSON.parse(localStorage.getItem('datosAnime')) === null && count === 3){ // Codigo localStorage
+            localStorage.setItem('datosAnime', JSON.stringify(localStorageArray));
+            
+        }
+
     } catch (error) {
         console.error(error);
+
+    } finally {
+        loader.classList.add('hidden'); // Codigo loader
+
     }
 }
+
 
 async function main() {
-    const firstMain = await dataFetch(`${API}top/anime?sfw`); // `${API}top/anime?sfw`
-    //console.log(firstMain.pagination.current_page);
-    firstMain.data.forEach(items => {
-        container.appendChild(divImg(items));
-    });
+    
+    for (let i = 1; i <= 3; i++) {
+        await animeMain(i);
+    };
+    
+    seeMoreDiv();
+};
 
-    for (let i = 2; i <= 4; i++) {
-        setTimeout(() => {
-            animeMain(i);
-        }, i * 600);
-    }
-}
+// See more Main
+function seeMoreDiv(){
+    const div = document.createElement('div');
+    div.classList.add('see-more');
+    div.innerHTML = `<button class="btn-see-more">Ver Mas</button>`
+    container.appendChild(div);
+};
 
 // Codigo del buscador
 
@@ -49,7 +67,7 @@ let searchArry = [] // codigo de actualizacion de pagina
 async function animeSearch(count, title) {
     try {
         const animeData = await dataFetch(`${API}anime?q=${encodeURIComponent(title)}&sfw&page=${count}`);
-
+        //console.log(animeData.pagination.last_visible_page);
         if (animeData.pagination.last_visible_page >= count) {
             animeData.data.forEach(items => {
                 container.appendChild(divImg(items, false));
@@ -66,6 +84,9 @@ async function animeSearch(count, title) {
 }
 
 btnSearch.addEventListener('click', () => {
+
+    document.querySelector('.see-more') && document.querySelector('.see-more').remove();
+
     try {
         document.querySelectorAll('.items').forEach(deleteItems => deleteItems.remove());
         titleAccion.textContent = "";
@@ -87,7 +108,9 @@ btnSearch.addEventListener('click', () => {
 // Codigo del buscador ENTER
 
 search.addEventListener('keydown', (event) => {
+    
     if (event.key === 'Enter') {
+        document.querySelector('.see-more') && document.querySelector('.see-more').remove();
         event.preventDefault();
         try {
             document.querySelectorAll('.items').forEach(deleteItems => deleteItems.remove());
@@ -130,46 +153,45 @@ function divImg(data, dataBool = true){
     return div;
 }
 
-// Enviar datos a la otra web
+// Enviar datos a la otra web y See more o ver mas
 
-container.addEventListener('click', (event) => {
+let numbA = 3; //  See more o ver mas
+let numbB = 3 // See more o ver mas
+container.addEventListener('click', async (event) => {
     const aInfo = event.target.closest('a');
-    event.preventDefault();
+    const seeMore = event.target.closest('button.btn-see-more'); // Codigo See more o ver mas
 
-    const getSearch = localStorage.getItem('getText'); // codigo de actualizacion de pagina
-    if (getSearch != null) {
-        window.location.href = `info.html?id=${encodeURIComponent(aInfo.dataset.id)}&title=${encodeURIComponent(aInfo.title)}&search=${encodeURIComponent(getSearch)}`; // codigo de actualizacion de pagina
+    if (aInfo) {
+        event.preventDefault();
+        const getSearch = localStorage.getItem('getText'); // codigo de actualizacion de pagina
+        if (getSearch != null) {
+            window.location.href = `info.html?id=${encodeURIComponent(aInfo.dataset.id)}&title=${encodeURIComponent(aInfo.title)}&search=${encodeURIComponent(getSearch)}`; // codigo de actualizacion de pagina
 
-    } else {
-        window.location.href = `info.html?id=${encodeURIComponent(aInfo.dataset.id)}&title=${encodeURIComponent(aInfo.title)}`;
+        } else {
+            window.location.href = `info.html?id=${encodeURIComponent(aInfo.dataset.id)}&title=${encodeURIComponent(aInfo.title)}`;
+        }
+
+    } else if (seeMore) { // Codigo See more o ver mas
+        event.preventDefault()
+        document.querySelector('.see-more').remove();
+
+        numbA += 1;
+        numbB += 3;
+        for (let i = numbA; i <= numbB; i++) {
+            await animeMain(i)
+            console.log(numbA, numbB);
+        }
+
+        seeMoreDiv();
+
+        numbA = numbB;
+        window.scrollBy({
+            top: 800,
+            behavior: "smooth"
+        }); 
     }
 
 });
-
-// LocalStorage Codigo
-
-let localAnimeArray = [];
-async function localAnimeMain(count) {
-    try {
-        const animeData = await dataFetch(`${API}top/anime?sfw&page=${count}`);
-        animeData.data.forEach(items => {
-            localAnimeArray.push(items);
-            
-        });
-        localStorage.setItem('datosAnime', JSON.stringify(localAnimeArray));
-
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-function storageAnimeMain() {
-    for (let i = 1; i <= 4; i++){
-        setTimeout(() => {
-            localAnimeMain(i)
-        }, i * 2000);
-    }
-}
 
 // Codigo de busqueda de actualizacion de pagina
 
@@ -191,20 +213,35 @@ function refreshSearch() {
 
 // Llamada del codigo
 
-if (JSON.parse(localStorage.getItem('datosAnime')) !== null && locationLink.get('search') === null) {
+const storedData = localStorage.getItem('datosAnime');
+const searchParam  = locationLink.get('search')
+const localSearch = JSON.parse(localStorage.getItem('search'));
+const getText = localStorage.getItem('getText');
 
-    const lsMain = JSON.parse(localStorage.getItem('datosAnime'));
-    lsMain.forEach(items => {
+if (storedData && !searchParam) {
+    
+    const loader = document.getElementById('loader'); // Codigo loader
+    loader.classList.remove('hidden'); // Codigo loader
+
+    const lsMain = JSON.parse(storedData);
+    setTimeout(() => {
+        lsMain.forEach(items => {
         container.appendChild(divImg(items));
     });
 
+    seeMoreDiv();
+    loader.classList.add('hidden'); // Codigo loader
+
+    }, 500);
+    
     localStorage.removeItem('search');
     localStorage.removeItem('getText');
+
     
-} else if (locationLink.get('search') !== null){ // Codigo de busqueda de actualizacion de pagina
+} else if (searchParam){ // Codigo de busqueda de actualizacion de pagina
     
-    const localSearch = JSON.parse(localStorage.getItem('search'));
-    if (localSearch !== null && localStorage.getItem('getText') === locationLink.get('search')) {
+    
+    if (localSearch && getText === searchParam) {
 
         localSearch.forEach(items => {
             container.appendChild(divImg(items, false));
@@ -212,33 +249,10 @@ if (JSON.parse(localStorage.getItem('datosAnime')) !== null && locationLink.get(
 
     } else {
         refreshSearch();
-        localStorage.setItem('getText', locationLink.get('search'));
-
+        localStorage.setItem('getText', searchParam);
     }
-     
-    
+        
 } else {
     main();
-    storageAnimeMain()
+    //localStorage.removeItem('datosAnime');
 }
-
-// See more o ver mas
-let numbA = 4; //NumberA
-let numbB = 4 //NumberB
-seeMoreBtn.addEventListener('click', () => {
-    numbA += 1;
-    numbB += 4;
-
-    seeMoreMain(numbA, numbB);
-
-    numbA = numbB;
-});
-
-function seeMoreMain(numA, numB) {
-
-    for (let i = numA; i <= numB; i++){
-        setTimeout(() => {
-            animeMain(i)
-        }, i * 800);
-    }
-};

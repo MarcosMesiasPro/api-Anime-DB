@@ -9,8 +9,6 @@ const backLink = document.querySelector('.back-link');
 
 const infoId = new URLSearchParams(window.location.search);
 const getInfoId = infoId.get('id');
-console.log(infoId.get('title'));
-console.log('Busqueda', infoId.get('search'));
 
 async function dataFetch(apiUrl) {
     const response = await fetch(apiUrl);
@@ -20,7 +18,6 @@ async function dataFetch(apiUrl) {
 
 async function animeInfoMain() {
     const dataInfo = await dataFetch(`${API}seasons/upcoming`); //now?sfw
-    console.log(dataInfo);
     const randomNum = Math.floor(Math.random() * 25);
     const item = dataInfo.data[randomNum];
     animeTemplate(item);
@@ -70,8 +67,7 @@ function animeTemplate(info){
 
 
 async function getId(id) {
-    const searchId = await dataFetch(`${API}anime/${id}`)
-    console.log(searchId.data);
+    const searchId = await dataFetch(`${API}anime/${id}`);
     animeTemplate(searchId.data);
 
 }
