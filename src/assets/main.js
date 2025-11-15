@@ -65,70 +65,86 @@ function seeMoreDiv(){
 
 let searchArry = [] // codigo de actualizacion de pagina
 async function animeSearch(count, title) {
+    const loader = document.getElementById('loader'); // Codigo loader
+    loader.classList.remove('hidden'); // Codigo loader
+    let totalPage = 0;
     try {
         const animeData = await dataFetch(`${API}anime?q=${encodeURIComponent(title)}&sfw&page=${count}`);
+        totalPage = animeData.pagination.last_visible_page;
         //console.log(animeData.pagination.last_visible_page);
         if (animeData.pagination.last_visible_page >= count) {
             animeData.data.forEach(items => {
                 container.appendChild(divImg(items, false));
-                searchArry.push(items); // codigo de actualizacion de pagina
+                searchArry.length < 75 && searchArry.push(items); // codigo de actualizacion de pagina
             });
         }
 
-        localStorage.setItem('search', JSON.stringify(searchArry)); // codigo de actualizacion de pagina
+        localStorage.setItem('search', JSON.stringify(searchArry)); // codigo de actualizacion de pagina 
 
     } catch (error) {
         console.error(error)
+    } finally {
+        loader.classList.add('hidden'); // Codigo loader
+        return totalPage;
     }
-    
 }
 
-btnSearch.addEventListener('click', () => {
-
+let seeSearchID = 0; // ID para multiples paginas a la hora de buscar
+btnSearch.addEventListener('click', async () => {
+    let totalPage = 0;
+    const inputSearch = search.value;
     document.querySelector('.see-more') && document.querySelector('.see-more').remove();
-
     try {
+        document.querySelector('.see-more') && document.querySelector('.see-more').remove();
         document.querySelectorAll('.items').forEach(deleteItems => deleteItems.remove());
         titleAccion.textContent = "";
-        for (let i = 1; i <= 10; i++) {
-            setTimeout(() => {
-            animeSearch(i, search.value)
+        for (let i = 1; i <= 3; i++) {
+            totalPage = await animeSearch(i, inputSearch);
+        };
 
-            }, i * 1000)
-        }
+        history.pushState({search: inputSearch}, '', `?search=${encodeURIComponent(inputSearch)}`); // codigo de actualizacion de pagina
+        localStorage.setItem('getText', inputSearch); // codigo de actualizacion de pagina
 
-        history.pushState({}, '', `?search=${encodeURIComponent(search.value)}`); // codigo de actualizacion de pagina
-        localStorage.setItem('getText', search.value); // codigo de actualizacion de pagina
+        if (totalPage > 3) {
+            localStorage.setItem('seeSearch', JSON.stringify([totalPage, inputSearch, seeSearchID]));
+            seeMoreDiv();
+            seeSearchID ++;
+        }; 
 
     } catch (error) {
         console.log(error);
-    }
+    };
 });
 
 // Codigo del buscador ENTER
 
-search.addEventListener('keydown', (event) => {
-    
+search.addEventListener('keydown', async (event) => {
+    let totalPage = 0;
+    const inputSearch = search.value;
     if (event.key === 'Enter') {
         document.querySelector('.see-more') && document.querySelector('.see-more').remove();
         event.preventDefault();
         try {
             document.querySelectorAll('.items').forEach(deleteItems => deleteItems.remove());
             titleAccion.textContent = "";
-            for (let i = 1; i <= 10; i++) {
-                setTimeout(() => {
-                    animeSearch(i, search.value)
+            for (let i = 1; i <= 3; i++) {
+                totalPage = await animeSearch(i, inputSearch);
+            };
 
-                }, i * 1000)
-            }
+            history.pushState({search: inputSearch}, '', `?search=${encodeURIComponent(inputSearch)}`); // codigo de actualizacion de pagina
+            localStorage.setItem('getText', inputSearch); // codigo de actualizacion de pagina
 
-            history.pushState({}, '', `?search=${encodeURIComponent(search.value)}`); // codigo de actualizacion de pagina
-            localStorage.setItem('getText', search.value); // codigo de actualizacion de pagina
+            if (totalPage > 3) {
+                localStorage.setItem('seeSearch', JSON.stringify([totalPage, inputSearch, seeSearchID]));
+                seeMoreDiv();
+                seeSearchID++;
+            };
 
         } catch (error) {
             console.log(error);
-        }
-    }
+
+        };
+    };
 });
 
 // Template HTML
@@ -157,9 +173,13 @@ function divImg(data, dataBool = true){
 
 let numbA = 3; //  See more o ver mas
 let numbB = 3 // See more o ver mas
+let seeNumbA = 3;
+let seeNumbB = 3;
+let getSeeSearchId = 0
 container.addEventListener('click', async (event) => {
     const aInfo = event.target.closest('a');
     const seeMore = event.target.closest('button.btn-see-more'); // Codigo See more o ver mas
+    const seeSearchMore = localStorage.getItem('seeSearch');
 
     if (aInfo) {
         event.preventDefault();
@@ -171,7 +191,7 @@ container.addEventListener('click', async (event) => {
             window.location.href = `info.html?id=${encodeURIComponent(aInfo.dataset.id)}&title=${encodeURIComponent(aInfo.title)}`;
         }
 
-    } else if (seeMore) { // Codigo See more o ver mas
+    } else if (seeMore && !seeSearchMore) { // Codigo See more o ver mas
         event.preventDefault()
         document.querySelector('.see-more').remove();
 
@@ -179,12 +199,46 @@ container.addEventListener('click', async (event) => {
         numbB += 3;
         for (let i = numbA; i <= numbB; i++) {
             await animeMain(i)
-            console.log(numbA, numbB);
+            
         }
 
         seeMoreDiv();
 
         numbA = numbB;
+        window.scrollBy({
+            top: 800,
+            behavior: "smooth"
+        }); 
+
+    } else if (seeMore && seeSearchMore) {
+        event.preventDefault();
+        document.querySelector('.see-more') && document.querySelector('.see-more').remove();
+        const newSeeSearch = JSON.parse(localStorage.getItem('seeSearch'));
+        if (getSeeSearchId !== newSeeSearch[2]) {
+            seeNumbA = 3;
+            seeNumbB = 3;
+            getSeeSearchId = newSeeSearch[2];
+        }
+
+        seeNumbA += 1;
+        seeNumbB += 3;
+        let iResult = 0;
+        for (let i = seeNumbA; i <= seeNumbB; i++) {
+
+            iResult = i;
+            if (i <= newSeeSearch[0]) {
+                await animeSearch(i, newSeeSearch[1]);
+
+            } else {
+                break;
+            }
+        }
+        if (iResult - 1 < newSeeSearch[0]) {
+            seeMoreDiv();
+        }
+
+        seeNumbA = seeNumbB;
+
         window.scrollBy({
             top: 800,
             behavior: "smooth"
@@ -195,21 +249,27 @@ container.addEventListener('click', async (event) => {
 
 // Codigo de busqueda de actualizacion de pagina
 
-function refreshSearch() {
+async function refreshSearch() {
+    let totalPage = 0;
+    const inputSearch = locationLink.get('search');
+    console.log('Entro Aqui: 3');
     try {
         document.querySelectorAll('.items').forEach(deleteItems => deleteItems.remove());
         titleAccion.textContent = "";
-        for (let i = 1; i <= 10; i++) {
-            setTimeout(() => {
-            animeSearch(i, locationLink.get('search'));
+        for (let i = 1; i <= 3; i++) {
+                totalPage = await animeSearch(i, inputSearch);
+            };
 
-            }, i * 1000)
-        }
+            if (totalPage > 3) {
+                localStorage.setItem('seeSearch', JSON.stringify([totalPage, inputSearch, seeSearchID]));
+                seeMoreDiv();
+            }
     } catch (error) {
         console.log(error);
     }
 }
 
+console.log(locationLink.get('search'));
 
 // Llamada del codigo
 
@@ -236,16 +296,41 @@ if (storedData && !searchParam) {
     
     localStorage.removeItem('search');
     localStorage.removeItem('getText');
+    localStorage.removeItem('seeSearch');
 
     
 } else if (searchParam){ // Codigo de busqueda de actualizacion de pagina
+    const loader = document.getElementById('loader'); // Codigo loader
+    loader.classList.remove('hidden'); // Codigo loader
+    const seeRefresh = JSON.parse(localStorage.getItem('seeSearch'));
+    console.log('ID Paginas: ', seeRefresh);
     
-    
-    if (localSearch && getText === searchParam) {
+    if (localSearch && getText === searchParam && !seeRefresh) {
+        console.log('Entro Aqui');
+        setTimeout (() => {
+            localSearch.forEach(items => {
+                container.appendChild(divImg(items, false));
+            });
+            loader.classList.add('hidden'); // Codigo loader
+        }, 500);
+        
+    } else if (seeRefresh){
+        
+        const apiRefresh = async () => {
+            console.log('Entro Aqui 2:', seeRefresh[1], getText);
+            try {
+                for (let i = 1; i <= 3; i++) {
+                    await animeSearch(i, getText);
+                };
+                if (seeRefresh[1] === getText) {
+                    seeMoreDiv();
+                }
 
-        localSearch.forEach(items => {
-            container.appendChild(divImg(items, false));
-        });
+            } catch (error) {
+                console.error(error)
+            }
+        }
+        apiRefresh();
 
     } else {
         refreshSearch();
@@ -256,3 +341,63 @@ if (storedData && !searchParam) {
     main();
     //localStorage.removeItem('datosAnime');
 }
+
+// Codigo del boton de adelante y atras
+
+window.addEventListener('popstate', async(event) => { // Funciona solo cuando usamos los botones de atras y adelante
+    console.log(event.state);
+    //console.log(event.state.search);
+
+    let totalPage = 0;
+    if (event.state) {
+        const inputSearch = event.state.search;
+        document.querySelector('.see-more') && document.querySelector('.see-more').remove();
+        event.preventDefault();
+        try {
+            const loader = document.getElementById('loader'); // Codigo loader
+            loader.classList.remove('hidden'); // Codigo loader
+
+            document.querySelectorAll('.items').forEach(deleteItems => deleteItems.remove());
+            titleAccion.textContent = "";
+            for (let i = 1; i <= 3; i++) {
+                totalPage = await animeSearch(i, inputSearch);
+            };
+
+            localStorage.setItem('getText', inputSearch); // codigo de actualizacion de pagina
+            if (totalPage > 3) {
+                localStorage.setItem('seeSearch', JSON.stringify([totalPage, inputSearch, seeSearchID]));
+                seeMoreDiv();
+                seeSearchID++;
+            }
+
+        } catch (error) {
+            console.error(error)
+        } finally {
+            loader.classList.add('hidden'); // Codigo loader
+        };
+
+    } else {
+        const loader = document.getElementById('loader'); // Codigo loader
+        loader.classList.remove('hidden'); // Codigo loader
+
+        document.querySelector('.see-more') && document.querySelector('.see-more').remove();
+        document.querySelectorAll('.items').forEach(deleteItems => deleteItems.remove());
+        titleAccion.textContent = "";
+
+        const lsMain = JSON.parse(storedData);
+        setTimeout(() => {
+            lsMain.forEach(items => {
+                container.appendChild(divImg(items));
+            });
+
+            seeMoreDiv();
+            loader.classList.add('hidden'); // Codigo loader
+
+        }, 500);
+
+        localStorage.removeItem('search');
+        localStorage.removeItem('getText');
+        localStorage.removeItem('seeSearch');
+    }
+    
+});
