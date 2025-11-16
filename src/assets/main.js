@@ -5,6 +5,7 @@ const search = document.querySelector('#input-search');
 const btnSearch = document.querySelector('#btn-search');
 const titleAccion = document.querySelector('.title-accion');
 const locationLink = new URLSearchParams(window.location.search);
+let loadMain = false;
 
 async function dataFetch(apiUrl) {
     const response = await fetch(apiUrl);
@@ -33,6 +34,7 @@ async function animeMain(count) {
             localStorage.setItem('datosAnime', JSON.stringify(localStorageArray));
             
         }
+        if (count === 3){loadMain = true}; // Codigo del observador scroll infinito
 
     } catch (error) {
         console.error(error);
@@ -45,12 +47,16 @@ async function animeMain(count) {
 
 
 async function main() {
-    
-    for (let i = 1; i <= 3; i++) {
+    try {
+        for (let i = 1; i <= 3; i++) {
         await animeMain(i);
     };
+
+    } catch (error) {
+        console.error(error)
+    }
     
-    seeMoreDiv();
+    //seeMoreDiv();
 };
 
 // See more Main
@@ -65,6 +71,7 @@ function seeMoreDiv(){
 
 let searchArry = [] // codigo de actualizacion de pagina
 async function animeSearch(count, title) {
+    loadMain = false; // Codigo del observador scroll infinito
     const loader = document.getElementById('loader'); // Codigo loader
     loader.classList.remove('hidden'); // Codigo loader
     let totalPage = 0;
@@ -76,10 +83,12 @@ async function animeSearch(count, title) {
             animeData.data.forEach(items => {
                 container.appendChild(divImg(items, false));
                 searchArry.length < 75 && searchArry.push(items); // codigo de actualizacion de pagina
+                
             });
         }
 
         localStorage.setItem('search', JSON.stringify(searchArry)); // codigo de actualizacion de pagina 
+        if (count >= 3 && totalPage > 3){loadMain = true}; // Codigo del observador scroll infinito
 
     } catch (error) {
         console.error(error)
@@ -107,7 +116,7 @@ btnSearch.addEventListener('click', async () => {
 
         if (totalPage > 3) {
             localStorage.setItem('seeSearch', JSON.stringify([totalPage, inputSearch, seeSearchID]));
-            seeMoreDiv();
+            //seeMoreDiv();
             seeSearchID ++;
         }; 
 
@@ -136,7 +145,7 @@ search.addEventListener('keydown', async (event) => {
 
             if (totalPage > 3) {
                 localStorage.setItem('seeSearch', JSON.stringify([totalPage, inputSearch, seeSearchID]));
-                seeMoreDiv();
+                //seeMoreDiv();
                 seeSearchID++;
             };
 
@@ -262,21 +271,19 @@ async function refreshSearch() {
 
             if (totalPage > 3) {
                 localStorage.setItem('seeSearch', JSON.stringify([totalPage, inputSearch, seeSearchID]));
-                seeMoreDiv();
+                //seeMoreDiv();
             }
     } catch (error) {
         console.log(error);
     }
-}
-
-console.log(locationLink.get('search'));
+};
 
 // Llamada del codigo
 
 const storedData = localStorage.getItem('datosAnime');
 const searchParam  = locationLink.get('search')
 const localSearch = JSON.parse(localStorage.getItem('search'));
-const getText = localStorage.getItem('getText');
+const getText = localStorage.getItem('getText'); // Tambien usado en el scroll infinito
 
 if (storedData && !searchParam) {
     
@@ -289,15 +296,16 @@ if (storedData && !searchParam) {
         container.appendChild(divImg(items));
     });
 
-    seeMoreDiv();
+    //seeMoreDiv();
     loader.classList.add('hidden'); // Codigo loader
+    loadMain = true;
 
     }, 500);
     
     localStorage.removeItem('search');
     localStorage.removeItem('getText');
     localStorage.removeItem('seeSearch');
-
+    //localStorage.removeItem('datosAnime');
     
 } else if (searchParam){ // Codigo de busqueda de actualizacion de pagina
     const loader = document.getElementById('loader'); // Codigo loader
@@ -311,7 +319,9 @@ if (storedData && !searchParam) {
             localSearch.forEach(items => {
                 container.appendChild(divImg(items, false));
             });
+
             loader.classList.add('hidden'); // Codigo loader
+
         }, 500);
         
     } else if (seeRefresh){
@@ -323,7 +333,7 @@ if (storedData && !searchParam) {
                     await animeSearch(i, getText);
                 };
                 if (seeRefresh[1] === getText) {
-                    seeMoreDiv();
+                    //seeMoreDiv();
                 }
 
             } catch (error) {
@@ -366,7 +376,7 @@ window.addEventListener('popstate', async(event) => { // Funciona solo cuando us
             localStorage.setItem('getText', inputSearch); // codigo de actualizacion de pagina
             if (totalPage > 3) {
                 localStorage.setItem('seeSearch', JSON.stringify([totalPage, inputSearch, seeSearchID]));
-                seeMoreDiv();
+                //seeMoreDiv();
                 seeSearchID++;
             }
 
@@ -390,7 +400,7 @@ window.addEventListener('popstate', async(event) => { // Funciona solo cuando us
                 container.appendChild(divImg(items));
             });
 
-            seeMoreDiv();
+            //seeMoreDiv();
             loader.classList.add('hidden'); // Codigo loader
 
         }, 500);
@@ -401,3 +411,75 @@ window.addEventListener('popstate', async(event) => { // Funciona solo cuando us
     }
     
 });
+
+// Nueva linea de codigo. Scroll infinito.
+
+const sentinel = document.querySelector('#sentinel');
+const observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+        loadMain && loadAnime();
+    };
+});
+
+let loading = false;
+let loadNumbA = 3;
+let loadNumbB = 3;
+async function loadAnime() {
+    const scrollSearch = localStorage.getItem('getText');
+    //if (loading) return;
+    console.log(scrollSearch);
+    if (!loading && !scrollSearch) {
+        try {
+            loading = true;
+            console.log('Entro en el observador');
+            loadNumbA += 1;
+            loadNumbB += 3;
+
+            for (let i = loadNumbA; i <= loadNumbB; i++) {
+                await animeMain(i);
+            };
+
+            loadNumbA = loadNumbB;
+            
+
+        } catch (error) {
+            console.error(error);
+        }   
+    } else if (scrollSearch) {
+        const newSeeSearch = JSON.parse(localStorage.getItem('seeSearch'));
+        if (getSeeSearchId !== newSeeSearch[2]) {
+            seeNumbA = 3;
+            seeNumbB = 3;
+            getSeeSearchId = newSeeSearch[2];
+        }
+
+        seeNumbA += 1;
+        seeNumbB += 3;
+        for (let i = seeNumbA; i <= seeNumbB; i++) {
+
+            console.log(i);
+            if (i <= newSeeSearch[0]) {
+                await animeSearch(i, newSeeSearch[1]);
+
+            };
+            
+            if (i == newSeeSearch[0]){
+                console.log('Aqui es falso');
+                loadMain = false;
+                break;
+            };
+        };
+        console.log(loadMain);
+
+        seeNumbA = seeNumbB;
+    }
+
+    loading = false;
+
+    window.scrollBy({
+        top: 800,
+        behavior: "smooth"
+    });
+};
+
+observer.observe(sentinel);

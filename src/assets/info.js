@@ -81,7 +81,7 @@ backLink.addEventListener('click', (event) => {
 
     backSearch = infoId.get('search');
     if (backSearch != null) {
-        window.location.href = `index.html?search=${encodeURIComponent(backSearch)}`;
+        history.back();
         
     } else {
         window.location.href = `index.html`;
