@@ -22,8 +22,6 @@ async function animeMain(count) {
 
     try {
         const animeData = await dataFetch(`${API}top/anime?sfw&page=${count}`); // top/anime?sfw
-        //console.log(animeData.pagination.current_page);
-        //console.log(animeData.pagination.last_visible_page);
         animeData.data.forEach(items => {
             container.appendChild(divImg(items));
             localStorageArray.length <= 74 && localStorageArray.push(items); // Codigo localStorage
@@ -55,16 +53,6 @@ async function main() {
     } catch (error) {
         console.error(error)
     }
-    
-    //seeMoreDiv();
-};
-
-// See more Main
-function seeMoreDiv(){
-    const div = document.createElement('div');
-    div.classList.add('see-more');
-    div.innerHTML = `<button class="btn-see-more">Ver Mas</button>`
-    container.appendChild(div);
 };
 
 // Codigo del buscador
@@ -78,7 +66,6 @@ async function animeSearch(count, title) {
     try {
         const animeData = await dataFetch(`${API}anime?q=${encodeURIComponent(title)}&sfw&page=${count}`);
         totalPage = animeData.pagination.last_visible_page;
-        //console.log(animeData.pagination.last_visible_page);
         if (animeData.pagination.last_visible_page >= count) {
             animeData.data.forEach(items => {
                 container.appendChild(divImg(items, false));
@@ -98,13 +85,14 @@ async function animeSearch(count, title) {
     }
 }
 
+// Buscador de click boton
+
 let seeSearchID = 0; // ID para multiples paginas a la hora de buscar
 btnSearch.addEventListener('click', async () => {
+    searchArry = [];
     let totalPage = 0;
     const inputSearch = search.value;
-    document.querySelector('.see-more') && document.querySelector('.see-more').remove();
     try {
-        document.querySelector('.see-more') && document.querySelector('.see-more').remove();
         document.querySelectorAll('.items').forEach(deleteItems => deleteItems.remove());
         titleAccion.textContent = "";
         for (let i = 1; i <= 3; i++) {
@@ -116,7 +104,6 @@ btnSearch.addEventListener('click', async () => {
 
         if (totalPage > 3) {
             localStorage.setItem('seeSearch', JSON.stringify([totalPage, inputSearch, seeSearchID]));
-            //seeMoreDiv();
             seeSearchID ++;
         }; 
 
@@ -128,10 +115,10 @@ btnSearch.addEventListener('click', async () => {
 // Codigo del buscador ENTER
 
 search.addEventListener('keydown', async (event) => {
+    searchArry = [];
     let totalPage = 0;
     const inputSearch = search.value;
     if (event.key === 'Enter') {
-        document.querySelector('.see-more') && document.querySelector('.see-more').remove();
         event.preventDefault();
         try {
             document.querySelectorAll('.items').forEach(deleteItems => deleteItems.remove());
@@ -145,7 +132,6 @@ search.addEventListener('keydown', async (event) => {
 
             if (totalPage > 3) {
                 localStorage.setItem('seeSearch', JSON.stringify([totalPage, inputSearch, seeSearchID]));
-                //seeMoreDiv();
                 seeSearchID++;
             };
 
@@ -178,90 +164,27 @@ function divImg(data, dataBool = true){
     return div;
 }
 
-// Enviar datos a la otra web y See more o ver mas
+// Enviar datos a al otro link info.html
 
-let numbA = 3; //  See more o ver mas
-let numbB = 3 // See more o ver mas
-let seeNumbA = 3;
-let seeNumbB = 3;
-let getSeeSearchId = 0
 container.addEventListener('click', async (event) => {
     const aInfo = event.target.closest('a');
-    const seeMore = event.target.closest('button.btn-see-more'); // Codigo See more o ver mas
-    const seeSearchMore = localStorage.getItem('seeSearch');
+    if (!aInfo) return;
+    event.preventDefault();
+    const getSearch = localStorage.getItem('getText'); // codigo de actualizacion de pagina
+    if (getSearch) {
+        window.location.href = `info.html?id=${encodeURIComponent(aInfo.dataset.id)}&title=${encodeURIComponent(aInfo.title)}&search=${encodeURIComponent(getSearch)}`; // codigo de actualizacion de pagina
 
-    if (aInfo) {
-        event.preventDefault();
-        const getSearch = localStorage.getItem('getText'); // codigo de actualizacion de pagina
-        if (getSearch != null) {
-            window.location.href = `info.html?id=${encodeURIComponent(aInfo.dataset.id)}&title=${encodeURIComponent(aInfo.title)}&search=${encodeURIComponent(getSearch)}`; // codigo de actualizacion de pagina
-
-        } else {
-            window.location.href = `info.html?id=${encodeURIComponent(aInfo.dataset.id)}&title=${encodeURIComponent(aInfo.title)}`;
-        }
-
-    } else if (seeMore && !seeSearchMore) { // Codigo See more o ver mas
-        event.preventDefault()
-        document.querySelector('.see-more').remove();
-
-        numbA += 1;
-        numbB += 3;
-        for (let i = numbA; i <= numbB; i++) {
-            await animeMain(i)
-            
-        }
-
-        seeMoreDiv();
-
-        numbA = numbB;
-        window.scrollBy({
-            top: 800,
-            behavior: "smooth"
-        }); 
-
-    } else if (seeMore && seeSearchMore) {
-        event.preventDefault();
-        document.querySelector('.see-more') && document.querySelector('.see-more').remove();
-        const newSeeSearch = JSON.parse(localStorage.getItem('seeSearch'));
-        if (getSeeSearchId !== newSeeSearch[2]) {
-            seeNumbA = 3;
-            seeNumbB = 3;
-            getSeeSearchId = newSeeSearch[2];
-        }
-
-        seeNumbA += 1;
-        seeNumbB += 3;
-        let iResult = 0;
-        for (let i = seeNumbA; i <= seeNumbB; i++) {
-
-            iResult = i;
-            if (i <= newSeeSearch[0]) {
-                await animeSearch(i, newSeeSearch[1]);
-
-            } else {
-                break;
-            }
-        }
-        if (iResult - 1 < newSeeSearch[0]) {
-            seeMoreDiv();
-        }
-
-        seeNumbA = seeNumbB;
-
-        window.scrollBy({
-            top: 800,
-            behavior: "smooth"
-        }); 
+    } else {
+        window.location.href = `info.html?id=${encodeURIComponent(aInfo.dataset.id)}&title=${encodeURIComponent(aInfo.title)}`;
     }
 
 });
 
-// Codigo de busqueda de actualizacion de pagina
+// Codigo de busqueda de actualizacion de pagina para otras webs
 
 async function refreshSearch() {
     let totalPage = 0;
     const inputSearch = locationLink.get('search');
-    console.log('Entro Aqui: 3');
     try {
         document.querySelectorAll('.items').forEach(deleteItems => deleteItems.remove());
         titleAccion.textContent = "";
@@ -271,19 +194,18 @@ async function refreshSearch() {
 
             if (totalPage > 3) {
                 localStorage.setItem('seeSearch', JSON.stringify([totalPage, inputSearch, seeSearchID]));
-                //seeMoreDiv();
             }
     } catch (error) {
-        console.log(error);
+        console.error(error);
     }
 };
 
 // Llamada del codigo
 
 const storedData = localStorage.getItem('datosAnime');
-const searchParam  = locationLink.get('search')
+const searchParam  = locationLink.get('search');
 const localSearch = JSON.parse(localStorage.getItem('search'));
-const getText = localStorage.getItem('getText'); // Tambien usado en el scroll infinito
+const getText = localStorage.getItem('getText');
 
 if (storedData && !searchParam) {
     
@@ -296,7 +218,6 @@ if (storedData && !searchParam) {
         container.appendChild(divImg(items));
     });
 
-    //seeMoreDiv();
     loader.classList.add('hidden'); // Codigo loader
     loadMain = true;
 
@@ -305,48 +226,30 @@ if (storedData && !searchParam) {
     localStorage.removeItem('search');
     localStorage.removeItem('getText');
     localStorage.removeItem('seeSearch');
-    //localStorage.removeItem('datosAnime');
     
 } else if (searchParam){ // Codigo de busqueda de actualizacion de pagina
+    //refreshSearch();
     const loader = document.getElementById('loader'); // Codigo loader
     loader.classList.remove('hidden'); // Codigo loader
+
     const seeRefresh = JSON.parse(localStorage.getItem('seeSearch'));
-    console.log('ID Paginas: ', seeRefresh);
-    
-    if (localSearch && getText === searchParam && !seeRefresh) {
-        console.log('Entro Aqui');
+    if (localSearch && getText === searchParam) {
         setTimeout (() => {
             localSearch.forEach(items => {
                 container.appendChild(divImg(items, false));
             });
 
+            if (seeRefresh){
+                if (seeRefresh[1] === getText) {loadMain = true};
+            }
             loader.classList.add('hidden'); // Codigo loader
-
         }, 500);
         
-    } else if (seeRefresh){
-        
-        const apiRefresh = async () => {
-            console.log('Entro Aqui 2:', seeRefresh[1], getText);
-            try {
-                for (let i = 1; i <= 3; i++) {
-                    await animeSearch(i, getText);
-                };
-                if (seeRefresh[1] === getText) {
-                    //seeMoreDiv();
-                }
-
-            } catch (error) {
-                console.error(error)
-            }
-        }
-        apiRefresh();
-
     } else {
         refreshSearch();
         localStorage.setItem('getText', searchParam);
     }
-        
+   
 } else {
     main();
     //localStorage.removeItem('datosAnime');
@@ -355,13 +258,10 @@ if (storedData && !searchParam) {
 // Codigo del boton de adelante y atras
 
 window.addEventListener('popstate', async(event) => { // Funciona solo cuando usamos los botones de atras y adelante
-    console.log(event.state);
-    //console.log(event.state.search);
-
+    searchArry = [];
     let totalPage = 0;
     if (event.state) {
         const inputSearch = event.state.search;
-        document.querySelector('.see-more') && document.querySelector('.see-more').remove();
         event.preventDefault();
         try {
             const loader = document.getElementById('loader'); // Codigo loader
@@ -376,7 +276,6 @@ window.addEventListener('popstate', async(event) => { // Funciona solo cuando us
             localStorage.setItem('getText', inputSearch); // codigo de actualizacion de pagina
             if (totalPage > 3) {
                 localStorage.setItem('seeSearch', JSON.stringify([totalPage, inputSearch, seeSearchID]));
-                //seeMoreDiv();
                 seeSearchID++;
             }
 
@@ -390,7 +289,6 @@ window.addEventListener('popstate', async(event) => { // Funciona solo cuando us
         const loader = document.getElementById('loader'); // Codigo loader
         loader.classList.remove('hidden'); // Codigo loader
 
-        document.querySelector('.see-more') && document.querySelector('.see-more').remove();
         document.querySelectorAll('.items').forEach(deleteItems => deleteItems.remove());
         titleAccion.textContent = "";
 
@@ -400,8 +298,8 @@ window.addEventListener('popstate', async(event) => { // Funciona solo cuando us
                 container.appendChild(divImg(items));
             });
 
-            //seeMoreDiv();
             loader.classList.add('hidden'); // Codigo loader
+            loadMain = true;
 
         }, 500);
 
@@ -424,10 +322,12 @@ const observer = new IntersectionObserver((entries) => {
 let loading = false;
 let loadNumbA = 3;
 let loadNumbB = 3;
+let seeNumbA = 3;
+let seeNumbB = 3;
+let getSeeSearchId = 0
 async function loadAnime() {
     const scrollSearch = localStorage.getItem('getText');
     //if (loading) return;
-    console.log(scrollSearch);
     if (!loading && !scrollSearch) {
         try {
             loading = true;
@@ -457,14 +357,12 @@ async function loadAnime() {
         seeNumbB += 3;
         for (let i = seeNumbA; i <= seeNumbB; i++) {
 
-            console.log(i);
             if (i <= newSeeSearch[0]) {
                 await animeSearch(i, newSeeSearch[1]);
 
             };
             
             if (i == newSeeSearch[0]){
-                console.log('Aqui es falso');
                 loadMain = false;
                 break;
             };

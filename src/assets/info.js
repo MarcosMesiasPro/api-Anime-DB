@@ -84,7 +84,8 @@ backLink.addEventListener('click', (event) => {
         history.back();
         
     } else {
-        window.location.href = `index.html`;
+        history.back();
+        //window.location.href = `index.html`;
     } 
     
 })
