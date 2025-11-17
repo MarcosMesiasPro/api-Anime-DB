@@ -5,7 +5,7 @@ Practicando con la API de títulos de Animes.
 npm install
 
 # Correr El servidor
-npm start
+npm run start
 
 # Abrir el el Navegador 
 http://localhost:3000
